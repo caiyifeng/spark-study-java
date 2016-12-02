@@ -28,7 +28,7 @@ public class JSONDataSource {
 		SQLContext sqlContext = new SQLContext(sc);
 		
 		//针对json文件,创建DataFrame
-		DataFrame studentScoresDF = sqlContext.read().json("hdfs://AY131210145836355bbcZ:9000/user/caiyf/students_grade.json");
+		DataFrame studentScoresDF = sqlContext.read().json("hdfs://iZ113mzdkz0Z:9000/user/caiyf/students/students_grade.json");
 		
 		//注册临时表，查询分数大于80分的学生的姓名
 		studentScoresDF.registerTempTable("student_scores");
@@ -123,7 +123,7 @@ public class JSONDataSource {
 		DataFrame goodStudentAllDF = sqlContext.createDataFrame(goodStudentRowRDD, structType);
 		goodStudentAllDF.printSchema();
 		goodStudentAllDF.show();
-		goodStudentAllDF.write().format("json").save("hdfs://AY131210145836355bbcZ:9000/user/caiyf/good-students");
+		goodStudentAllDF.write().format("json").save("hdfs://iZ113mzdkz0Z:9000/user/caiyf/good-students");
 		
 	}
 
