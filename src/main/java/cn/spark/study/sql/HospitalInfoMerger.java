@@ -57,8 +57,8 @@ public class HospitalInfoMerger {
 		
 //		final Field[] flds = HospitalInfo.class.getDeclaredFields();
 
-		//JavaRDD<String> hospitalInfoRDD = sc.textFile("hdfs://iZ113mzdkz0Z:9000/user/caiyf/hospital/hospital_info.txt");
-		JavaRDD<String> hospitalInfoRDD = sc.textFile("d://temp//hospital_info.txt");
+		JavaRDD<String> hospitalInfoRDD = sc.textFile("hdfs://iZ113mzdkz0Z:9000/user/caiyf/hospital/hospital_info.txt");
+		//JavaRDD<String> hospitalInfoRDD = sc.textFile("d://temp//hospital_info.txt");
 		
 		//final Class<?> bClazz = Class.forName("cn.spark.study.HospitalInfo");
 		//HospitalInfo.class
@@ -171,7 +171,7 @@ public class HospitalInfoMerger {
 //			System.out.println("info=====bbbbbbb=====" + info.toString());  
 //		}			
 //		
-		lineRDD.saveAsTextFile("d://temp//hospital_merge");
+		lineRDD.saveAsTextFile("hdfs://AY131210145836355bbcZ:9000/user/caiyf/hospital_merge");
 		
 //		List<HospitalInfo> infoList =   mergeInfoRDD.collect();
 //		for(HospitalInfo info : infoList) {
