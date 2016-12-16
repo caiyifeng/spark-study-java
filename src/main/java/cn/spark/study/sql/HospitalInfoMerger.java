@@ -131,10 +131,10 @@ public class HospitalInfoMerger {
 			
 		});
 		
-		List<HospitalInfo> infoList =   mergeInfoRDD.collect();
-		for(HospitalInfo info : infoList) {
-			System.out.println("info=====aaaaaaaa=====" + info.toString());  
-		}			
+//		List<HospitalInfo> infoList =   mergeInfoRDD.collect();
+//		for(HospitalInfo info : infoList) {
+//			System.out.println("info=====aaaaaaaa=====" + info.toString());  
+//		}			
 		JavaRDD<String> lineRDD = mergeInfoRDD.map(new Function<HospitalInfo,String>(){
 
 			/**
@@ -147,15 +147,15 @@ public class HospitalInfoMerger {
 			public String call(HospitalInfo info) throws Exception {
 				String line = ""; 
 				Field[] flds = HospitalInfo.class.getDeclaredFields();
-				System.out.println("flds.size()=============" + flds.length);
+			//	System.out.println("flds.size()=============" + flds.length);
 				for (int i=0;i<flds.length;i++) {
 					String methodName = methodGetMap.get(i);
 					Method unChangeMethod1 =  HospitalInfo.class.getDeclaredMethod(methodName);
-					System.out.println("methodName=============" + methodName);
+			//		System.out.println("methodName=============" + methodName);
 					String fieldValue = (String)unChangeMethod1.invoke(info);
 					if (fieldValue ==null || fieldValue.length() ==0)
 						fieldValue = "";
-					System.out.println("fieldValue=============" + fieldValue);
+			//		System.out.println("fieldValue=============" + fieldValue);
 					if (i== 11)
 						line = line + fieldValue ;
 					else
