@@ -171,7 +171,7 @@ public class HospitalInfoMerger {
 //			System.out.println("info=====bbbbbbb=====" + info.toString());  
 //		}			
 //		
-		lineRDD.saveAsTextFile("hdfs://AY131210145836355bbcZ:9000/user/caiyf/hospital_merge");
+		lineRDD.saveAsTextFile("hdfs://iZ113mzdkz0Z:9000/user/caiyf/hospital_merge");
 		
 //		List<HospitalInfo> infoList =   mergeInfoRDD.collect();
 //		for(HospitalInfo info : infoList) {
