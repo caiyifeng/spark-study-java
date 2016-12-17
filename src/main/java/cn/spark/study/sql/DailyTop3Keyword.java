@@ -254,8 +254,11 @@ public class DailyTop3Keyword {
 		
 		// 将最终的数据，转换为DataFrame，并保存到Hive表中
 		DataFrame finalDF = sqlContext.createDataFrame(sortedRowRDD, structType);
-		
-		finalDF.saveAsTable("daily_top3_keyword_uv");
+		Row[] rows = finalDF.collect();
+		for (int i=0;i<rows.length;i++) {
+			System.out.println("date==========" + rows[0].getString(0));
+		}
+		//finalDF.saveAsTable("daily_top3_keyword_uv");
 		
 		sc.close();
 		
