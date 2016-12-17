@@ -121,6 +121,11 @@ public class DailyTop3Keyword {
 		
 		
 		// 进行分组，获取每天每个搜索词，有哪些用户搜索了（没有去重）
+		List<Tuple2<String, String>> rows = dateKeywordUserRDD.collect();
+		for (Tuple2<String, String> tuple : rows) {
+			System.out.println("aaa==========================================" + tuple._1);
+			System.out.println("aaa==========================================" + tuple._2);
+		}		
 		JavaPairRDD<String, Iterable<String>> dateKeywordUsersRDD = dateKeywordUserRDD.groupByKey();
 		
 		// 对每天每个搜索词的搜索用户，执行去重操作，获得其uv
