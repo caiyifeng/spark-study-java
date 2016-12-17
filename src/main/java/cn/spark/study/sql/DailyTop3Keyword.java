@@ -56,8 +56,8 @@ public class DailyTop3Keyword {
 				sc.broadcast(queryParamMap);
 		
 		// 针对HDFS文件中的日志，获取输入RDD
-		//JavaRDD<String> rawRDD = sc.textFile("hdfs://iZ113mzdkz0Z:9000/user/caiyf/dailykeyword/keyword.txt"); 
-		JavaRDD<String> rawRDD = sc.textFile("d://temp//keyword.txt");
+		JavaRDD<String> rawRDD = sc.textFile("hdfs://iZ113mzdkz0Z:9000/user/caiyf/dailykeyword/keyword.txt"); 
+		//JavaRDD<String> rawRDD = sc.textFile("d://temp//keyword.txt");
 
 		// 使用查询参数Map广播变量，进行筛选
 		JavaRDD<String> filterRDD = rawRDD.filter(new Function<String, Boolean>() {
@@ -96,7 +96,6 @@ public class DailyTop3Keyword {
 			
 		});
 		
-
 		
 		// 过滤出来的原始日志，映射为(日期_搜索词, 用户)的格式
 		JavaPairRDD<String, String> dateKeywordUserRDD = filterRDD.mapToPair(
@@ -112,7 +111,6 @@ public class DailyTop3Keyword {
 						String date = logSplited[0];
 						String user = logSplited[1];
 						String keyword = logSplited[2];
-						System.out.println("key================" + date + "_" + keyword);
 						return new Tuple2<String, String>(date + "_" + keyword, user);
 					}
 					
@@ -121,11 +119,7 @@ public class DailyTop3Keyword {
 		
 		
 		// 进行分组，获取每天每个搜索词，有哪些用户搜索了（没有去重）
-		List<Tuple2<String, String>> rows = dateKeywordUserRDD.collect();
-		for (Tuple2<String, String> tuple : rows) {
-			System.out.println("aaa==========================================" + tuple._1);
-			System.out.println("aaa==========================================" + tuple._2);
-		}		
+	
 		JavaPairRDD<String, Iterable<String>> dateKeywordUsersRDD = dateKeywordUserRDD.groupByKey();
 		
 		// 对每天每个搜索词的搜索用户，执行去重操作，获得其uv
