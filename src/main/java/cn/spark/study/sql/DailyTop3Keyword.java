@@ -18,6 +18,7 @@ import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
+import org.apache.spark.sql.SQLContext;
 import org.apache.spark.sql.hive.HiveContext;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
@@ -25,108 +26,130 @@ import org.apache.spark.sql.types.StructType;
 
 import scala.Tuple2;
 
+/**
+ * 每日top3热点搜索词统计案例
+ * @author Administrator
+ *
+ */
 public class DailyTop3Keyword {
 
+	@SuppressWarnings("deprecation")
 	public static void main(String[] args) {
-		SparkConf conf = new SparkConf().setAppName("DailyTop3Keyword");
+		SparkConf conf = new SparkConf()
+				.setAppName("DailyTop3Keyword");  
 		JavaSparkContext sc = new JavaSparkContext(conf);
-		HiveContext sqlContext = new HiveContext(sc.sc());  
-		Map<String,List<String>> queryParamMap = new HashMap<String,List<String>>();
-		//自定义一份 数据的查询条件 
-		queryParamMap.put("city", Arrays.asList("beijing"));
-		queryParamMap.put("platform", Arrays.asList("android"));
-		queryParamMap.put("version",Arrays.asList("1.0","1.2","1.5","2.0"));
-		//我们将查询参数Map封装为一个Broadcast广播变量
-		//每个worker节点,各自拷贝一份即可
-		final Broadcast<Map<String,List<String>>> queryBroadcast = sc.broadcast(queryParamMap);
-		JavaRDD<String> rawRDD = sc.textFile("hdfs://iZ113mzdkz0Z:9000/user/caiyf/dailykeyword/keyword.txt");
+		HiveContext sqlContext = new HiveContext(sc.sc());
 		
-		//使用查询参数变量,进行数据的过滤筛选
-		JavaRDD<String> filteredRDD = rawRDD.filter(new Function<String,Boolean>(){
-
-			/**
-			 * 
-			 */
+		//SQLContext sqlContext = new SQLContext(sc.sc());
+		
+		// 伪造出一份数据，查询条件
+		// 备注：实际上，在实际的企业项目开发中，很可能，这个查询条件，是通过J2EE平台插入到某个MySQL表中的
+		// 然后，这里呢，实际上，通常是会用Spring框架和ORM框架（MyBatis）的，去提取MySQL表中的查询条件
+		Map<String, List<String>> queryParamMap = new HashMap<String, List<String>>();
+		queryParamMap.put("city", Arrays.asList("beijing"));  
+		queryParamMap.put("platform", Arrays.asList("android"));  
+		queryParamMap.put("version", Arrays.asList("1.0", "1.2", "1.5", "2.0"));  
+		
+		// 根据我们实现思路中的分析，这里最合适的方式，是将该查询参数Map封装为一个Broadcast广播变量
+		// 这样可以进行优化，每个Worker节点，就拷贝一份数据即可
+		final Broadcast<Map<String, List<String>>> queryParamMapBroadcast = 
+				sc.broadcast(queryParamMap);
+		
+		// 针对HDFS文件中的日志，获取输入RDD
+		JavaRDD<String> rawRDD = sc.textFile("hdfs://iZ113mzdkz0Z:9000/user/caiyf/dailykeyword/keyword.txt"); 
+		
+		// 使用查询参数Map广播变量，进行筛选
+		JavaRDD<String> filterRDD = rawRDD.filter(new Function<String, Boolean>() {
+			
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			public Boolean call(String log) throws Exception {
-				String[] logSplited = log.split("\t");
+				// 切割原始日志，获取城市、平台和版本
+				String[] logSplited = log.split("\t");  
+				
 				String city = logSplited[3];
 				String platform = logSplited[4];
 				String version = logSplited[5];
-				//与查询条件进行对比
-				Map<String,List<String>> queryParamMap = queryBroadcast.value();
-				List<String> cities = queryParamMap.get("city");
-				if (cities.size() >0 && !cities.contains(city))
-					return false;
 				
-				List<String> platforms = queryParamMap.get("platform");
-				if (platforms.size()>0 && !platforms.contains(platform))
-					return false;
+				// 与查询条件进行比对，任何一个条件，只要该条件设置了，且日志中的数据没有满足条件
+				// 则直接返回false，过滤该日志
+				// 否则，如果所有设置的条件，都有日志中的数据，则返回true，保留日志
+				Map<String, List<String>> queryParamMap = queryParamMapBroadcast.value();
 				
-				
-				List<String> versions = queryParamMap.get("version");
-				if (versions.size() >0 &&  !versions.contains(version)) 
+				List<String> cities = queryParamMap.get("city");  
+				if(cities.size() > 0 && !cities.contains(city)) {
 					return false;
+				}
+				
+				List<String> platforms = queryParamMap.get("platform");  
+				if(platforms.size() > 0 && !platforms.contains(platform)) {
+					return false;
+				}
+				
+				List<String> versions = queryParamMap.get("version");  
+				if(versions.size() > 0 && !versions.contains(version)) {
+					return false;
+				}
 				
 				return true;
 			}
 			
 		});
 		
-		//将过滤出来的原始日志映射为(日期_搜索词,用户)的格式
-		JavaPairRDD<String,String> dateKeywordUserRDD = filteredRDD.mapToPair(new PairFunction<String,String,String>(){
-
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public Tuple2<String, String> call(String log) throws Exception {
-				String[] logSplited = log.split("\t");
-				String date = logSplited[0];
-				String user = logSplited[1];
-				String keyword = logSplited[2];		
+		// 过滤出来的原始日志，映射为(日期_搜索词, 用户)的格式
+		JavaPairRDD<String, String> dateKeywordUserRDD = filterRDD.mapToPair(
 				
-				return new Tuple2<String,String>(date+ "_" + keyword,user);
-			}
-			
-		});
-		
-		//进行分组,获取每天+每个搜索词,有哪些用户搜索了(未去重)
-		JavaPairRDD<String,Iterable<String>> dateKeywordUsersRDD = dateKeywordUserRDD.groupByKey();
-		
-		//对每天每个搜索词的搜索用户,执行去重处理,得到UV
-		JavaPairRDD<String,Long> dateKeywordUvRDD = dateKeywordUsersRDD.mapToPair(new PairFunction<Tuple2<String,Iterable<String>>,String,Long>(){
+				new PairFunction<String, String, String>() {
 
-			private static final long serialVersionUID = 1L;
+					private static final long serialVersionUID = 1L;
 
-			@Override
-			public Tuple2<String, Long> call(
-					Tuple2<String, Iterable<String>> dateKeywordUsers) throws Exception {
-				
-				String dateKeyword = dateKeywordUsers._1;
-				
-				Iterator<String>  users = dateKeywordUsers._2.iterator();
-				// 对用户进行去重，并统计去重后的数量
-				List<String> distinctUsers = new ArrayList<String>();
-				
-				while(users.hasNext()) {
-					String user = users.next();
-					if(!distinctUsers.contains(user)) {
-						distinctUsers.add(user);
+					@Override
+					public Tuple2<String, String> call(String log) throws Exception {
+						String[] logSplited = log.split("\t");  
+						
+						String date = logSplited[0];
+						String user = logSplited[1];
+						String keyword = logSplited[2];
+						
+						return new Tuple2<String, String>(date + "_" + keyword, user);
 					}
-				}
-				// 获取uv
-				long uv = distinctUsers.size();
+					
+				});
+		
+		// 进行分组，获取每天每个搜索词，有哪些用户搜索了（没有去重）
+		JavaPairRDD<String, Iterable<String>> dateKeywordUsersRDD = dateKeywordUserRDD.groupByKey();
+		
+		// 对每天每个搜索词的搜索用户，执行去重操作，获得其uv
+		JavaPairRDD<String, Long> dateKeywordUvRDD = dateKeywordUsersRDD.mapToPair(
 				
-				return new Tuple2<String, Long>(dateKeyword, uv);  				
-			}
+				new PairFunction<Tuple2<String,Iterable<String>>, String, Long>() {
 
-			
-		});
+					private static final long serialVersionUID = 1L;
+		
+					@Override
+					public Tuple2<String, Long> call(
+							Tuple2<String, Iterable<String>> dateKeywordUsers) throws Exception {
+						String dateKeyword = dateKeywordUsers._1;
+						Iterator<String> users = dateKeywordUsers._2.iterator();
+						
+						// 对用户进行去重，并统计去重后的数量
+						List<String> distinctUsers = new ArrayList<String>();
+						
+						while(users.hasNext()) {
+							String user = users.next();
+							if(!distinctUsers.contains(user)) {
+								distinctUsers.add(user);
+							}
+						}
+						
+						// 获取uv
+						long uv = distinctUsers.size();
+						
+						return new Tuple2<String, Long>(dateKeyword, uv);  
+					}
+					
+				});
 		
 		// 将每天每个搜索词的uv数据，转换成DataFrame
 		JavaRDD<Row> dateKeywordUvRowRDD = dateKeywordUvRDD.map(
@@ -167,7 +190,7 @@ public class DailyTop3Keyword {
 					+ "FROM daily_keyword_uv"  
 				+ ") tmp "
 				+ "WHERE rank<=3");  
-
+		
 		// 将DataFrame转换为RDD，然后映射，计算出每天的top3搜索词的搜索uv总数
 		JavaRDD<Row> dailyTop3KeywordRDD = dailyTop3KeywordDF.javaRDD();
 		
@@ -255,14 +278,12 @@ public class DailyTop3Keyword {
 		// 将最终的数据，转换为DataFrame，并保存到Hive表中
 		DataFrame finalDF = sqlContext.createDataFrame(sortedRowRDD, structType);
 		Row[] rows = finalDF.collect();
-		for (int i=0;i<rows.length;i++) {
-			System.out.println("date==========" + rows[0].getString(0));
+		for (int i=0;i< rows.length;i++) {
+			System.out.println("aaa===========" + rows[i].getString(0));
 		}
 		//finalDF.saveAsTable("daily_top3_keyword_uv");
 		
 		sc.close();
-		
-		
 	}
-
+	
 }
