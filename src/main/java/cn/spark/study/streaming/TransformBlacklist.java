@@ -44,7 +44,7 @@ public class TransformBlacklist {
 		final JavaPairRDD<String, Boolean> blacklistRDD = jssc.sc().parallelizePairs(blacklist);
 		
 		// 这里的日志格式，就简化一下，就是date username的方式
-		JavaReceiverInputDStream<String> adsClickLogDStream = jssc.socketTextStream("spark1", 9999);
+		JavaReceiverInputDStream<String> adsClickLogDStream = jssc.socketTextStream("iZ113mzdkz0Z", 9999);
 		
 		// 所以，要先对输入的数据，进行一下转换操作，变成，(username, date username)
 		// 以便于，后面对每个batch RDD，与定义好的黑名单RDD进行join操作

@@ -36,10 +36,10 @@ public class UpdateStateByKeyWordCount {
 		// 内存数据丢失的时候，可以从checkpoint中恢复数据
 		
 		// 开启checkpoint机制，很简单，只要调用jssc的checkpoint()方法，设置一个hdfs目录即可
-		jssc.checkpoint("hdfs://spark1:9000/wordcount_checkpoint");  
+		jssc.checkpoint("hdfs://iZ113mzdkz0Z:9000/wordcount_checkpoint");  
 		
 		// 然后先实现基础的wordcount逻辑
-		JavaReceiverInputDStream<String> lines = jssc.socketTextStream("localhost", 9999);
+		JavaReceiverInputDStream<String> lines = jssc.socketTextStream("iZ113mzdkz0Z", 9999);
 		
 		JavaDStream<String> words = lines.flatMap(new FlatMapFunction<String, String>() {
 
