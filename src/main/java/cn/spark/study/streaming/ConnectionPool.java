@@ -36,8 +36,8 @@ public class ConnectionPool {
 				for(int i = 0; i < 10; i++) {
 					Connection conn = DriverManager.getConnection(
 							"jdbc:mysql://iZ11f9s5fm1Z:3306/testdb", 
-							"", 
-							"");
+							"test", 
+							"1234");
 					connectionQueue.push(conn);  
 				}
 			}
