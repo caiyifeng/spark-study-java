@@ -51,8 +51,23 @@ public class ICDCodeMerger {
 		//final Class<?> bClazz = Class.forName("cn.spark.study.HospitalInfo");
 		//HospitalInfo.class
 		
+		JavaRDD<String> hospitalInfoFilterRDD = hospitalInfoRDD.filter(new Function<String,Boolean> () {
+
+			@Override
+			public Boolean call(String line) throws Exception {
+				String[] lineSplited = line.split(DEFAULT_SEPARATOR);
+				if (lineSplited == null)
+					return false;
+				if (lineSplited.length < 2)
+					return false;
+				if (lineSplited.length > 2 && lineSplited[1].trim().length() ==0)
+					return false;
+				return true;
+			}
+			
+		});
 		
-		JavaPairRDD<String,MedicinalInfo> hospitalInfoRDDNew = hospitalInfoRDD.mapToPair(new PairFunction<String,String,MedicinalInfo>(){
+		JavaPairRDD<String,MedicinalInfo> hospitalInfoRDDNew = hospitalInfoFilterRDD.mapToPair(new PairFunction<String,String,MedicinalInfo>(){
 
 			/**
 			 * 
@@ -63,8 +78,8 @@ public class ICDCodeMerger {
 			public Tuple2<String, MedicinalInfo> call(String line)
 					throws Exception {
 				String[] lineSplited = line.split(DEFAULT_SEPARATOR);
+				
 				String key = lineSplited[1];
-				System.out.println("key===========" + key);
 				Object bObj = MedicinalInfo.class.newInstance();
 				for (int i=0;i<lineSplited.length;i++) {
 					String methodName = methodMap.get(i);
