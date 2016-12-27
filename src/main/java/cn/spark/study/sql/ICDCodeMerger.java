@@ -83,7 +83,7 @@ public class ICDCodeMerger {
 				Object bObj = MedicinalInfo.class.newInstance();
 				for (int i=0;i<lineSplited.length;i++) {
 					String methodName = methodMap.get(i);
-					System.out.println("methodName===========" + methodName);
+//					System.out.println("methodName===========" + methodName);
 					
 					Method unChangeMethod1 =  MedicinalInfo.class.getDeclaredMethod(methodName, String.class);
 					unChangeMethod1.invoke(bObj,lineSplited[i]);					
