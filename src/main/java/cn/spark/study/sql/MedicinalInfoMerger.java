@@ -66,7 +66,6 @@ public class MedicinalInfoMerger {
 			@Override
 			public Tuple2<String, MedicinalInfo> call(String line)
 					throws Exception {
-				System.out.println("line==============" + line);
 				String[] lineSplited = line.split(DEFAULT_SEPARATOR);
 				String key = lineSplited[1];
 				Object bObj = MedicinalInfo.class.newInstance();
