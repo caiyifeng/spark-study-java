@@ -55,8 +55,24 @@ public class MedicinalInfoMerger {
 		//final Class<?> bClazz = Class.forName("cn.spark.study.HospitalInfo");
 		//HospitalInfo.class
 		
+		JavaRDD<String> hospitalInfoFilterRDD = hospitalInfoRDD.filter(new Function<String,Boolean> () {
+
+			@Override
+			public Boolean call(String line) throws Exception {
+				String[] lineSplited = line.split(DEFAULT_SEPARATOR);
+				if (lineSplited == null)
+					return false;
+				if (lineSplited.length < 2)
+					return false;
+				if (lineSplited.length >= 2 && lineSplited[1].trim().length() ==0)
+					return false;
+				return true;
+			}
+			
+		});
 		
-		JavaPairRDD<String,MedicinalInfo> hospitalInfoRDDNew = hospitalInfoRDD.mapToPair(new PairFunction<String,String,MedicinalInfo>(){
+		
+		JavaPairRDD<String,MedicinalInfo> hospitalInfoRDDNew = hospitalInfoFilterRDD.mapToPair(new PairFunction<String,String,MedicinalInfo>(){
 
 			/**
 			 * 
@@ -71,8 +87,7 @@ public class MedicinalInfoMerger {
 				Object bObj = MedicinalInfo.class.newInstance();
 				for (int i=0;i<lineSplited.length;i++) {
 					String methodName = methodMap.get(i);
-					//System.out.println("methodName===========" + methodName);
-					
+				
 					Method unChangeMethod1 =  MedicinalInfo.class.getDeclaredMethod(methodName, String.class);
 					unChangeMethod1.invoke(bObj,lineSplited[i]);					
 				}
@@ -139,7 +154,7 @@ public class MedicinalInfoMerger {
 				String line = ""; 
 				Field[] flds = MedicinalInfo.class.getDeclaredFields();
 			//	System.out.println("flds.size()=============" + flds.length);
-				for (int i=0;i<flds.length;i++) {
+				for (int i=0;i<2;i++) {
 					String methodName = methodGetMap.get(i);
 					Method unChangeMethod1 =  MedicinalInfo.class.getDeclaredMethod(methodName);
 			//		System.out.println("methodName=============" + methodName);
@@ -147,7 +162,7 @@ public class MedicinalInfoMerger {
 					if (fieldValue ==null || fieldValue.length() ==0)
 						fieldValue = "";
 			//		System.out.println("fieldValue=============" + fieldValue);
-					if (i== 2)
+					if (i== 1)
 						line = line + fieldValue ;
 					else
 						line = line + fieldValue + DEFAULT_SEPARATOR;

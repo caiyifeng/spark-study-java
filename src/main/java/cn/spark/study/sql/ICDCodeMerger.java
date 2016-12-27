@@ -60,7 +60,7 @@ public class ICDCodeMerger {
 					return false;
 				if (lineSplited.length < 2)
 					return false;
-				if (lineSplited.length > 2 && lineSplited[1].trim().length() ==0)
+				if (lineSplited.length >= 2 && lineSplited[1].trim().length() ==0)
 					return false;
 				return true;
 			}
