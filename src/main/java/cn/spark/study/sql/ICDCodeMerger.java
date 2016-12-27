@@ -151,7 +151,7 @@ public class ICDCodeMerger {
 				String line = ""; 
 				Field[] flds = MedicinalInfo.class.getDeclaredFields();
 			//	System.out.println("flds.size()=============" + flds.length);
-				for (int i=0;i<flds.length;i++) {
+				for (int i=0;i<5;i++) {
 					String methodName = methodGetMap.get(i);
 					Method unChangeMethod1 =  MedicinalInfo.class.getDeclaredMethod(methodName);
 			//		System.out.println("methodName=============" + methodName);

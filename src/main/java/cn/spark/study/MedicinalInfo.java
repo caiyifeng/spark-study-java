@@ -5,8 +5,6 @@ import java.io.Serializable;
 public class MedicinalInfo implements  Serializable{
 	String icdCode;
 	String icdName;
-	String icdCategory;
-	String icdLiability;
 	String icdRisk;
 	String icdAccident;
 	String icdDisease;
@@ -21,18 +19,6 @@ public class MedicinalInfo implements  Serializable{
 	}
 	public void setIcdName(String icdName) {
 		this.icdName = icdName;
-	}
-	public String getIcdCategory() {
-		return icdCategory;
-	}
-	public void setIcdCategory(String icdCategory) {
-		this.icdCategory = icdCategory;
-	}
-	public String getIcdLiability() {
-		return icdLiability;
-	}
-	public void setIcdLiability(String icdLiability) {
-		this.icdLiability = icdLiability;
 	}
 	public String getIcdRisk() {
 		return icdRisk;
@@ -69,10 +55,6 @@ public class MedicinalInfo implements  Serializable{
 			if (info.getIcdAccident() !=null && info.getIcdAccident().length() >0)
 				this.setIcdAccident(info.getIcdAccident());
 		}
-		if (this.getIcdCategory() == null || this.getIcdCategory().length()==0) {
-			if (info.getIcdCategory() !=null && info.getIcdCategory().length() >0)
-				this.setIcdCategory(info.getIcdCategory());
-		}	
 		
 		
 		if (this.getIcdDisease() == null || this.getIcdDisease().length()==0) {
@@ -80,11 +62,6 @@ public class MedicinalInfo implements  Serializable{
 				this.setIcdDisease(info.getIcdDisease());
 		}
 		
-		
-		if (this.getIcdLiability() == null || this.getIcdLiability().length()==0) {
-			if (info.getIcdLiability() !=null && info.getIcdLiability().length() >0)
-				this.setIcdLiability(info.getIcdLiability());
-		}	
 		
 		if (this.getIcdRisk() == null || this.getIcdRisk().length()==0) {
 			if (info.getIcdRisk() !=null && info.getIcdRisk().length() >0)
